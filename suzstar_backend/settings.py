@@ -132,6 +132,11 @@ CORS_ALLOWED_ORIGINS = [
     "https://suzstar-backend.onrender.com",
 ]
 
+CSRF_TRUSTED_ORIGINS = [
+    "https://suzstar-backend.onrender.com",
+    "https://suzstar-frontend.onrender.com",
+]
+
 CORS_ALLOW_CREDENTIALS = True
 
 # REST Framework settings
