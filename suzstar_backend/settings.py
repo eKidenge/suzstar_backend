@@ -25,7 +25,13 @@ SECRET_KEY = 'django-insecure-hl!5ar-+a5yip2ouu_fazp+6x*y=!k93m*5q!5acoxs02cvj#u
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['localhost', '127.0.0.1', 'https://suzstar-backend.onrender.com']
+# suzstar_backend/settings.py
+
+ALLOWED_HOSTS = [
+    'localhost', 
+    '127.0.0.1', 
+    'suzstar-backend.onrender.com'
+]
 
 
 # Application definition
