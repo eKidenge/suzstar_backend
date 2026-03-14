@@ -10,6 +10,7 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/6.0/ref/settings/
 """
 
+import os
 from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -20,17 +21,16 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/6.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-hl!5ar-+a5yip2ouu_fazp+6x*y=!k93m*5q!5acoxs02cvj#u'
+# Use environment variable in production, fallback for local development
+SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY', 'django-insecure-hl!5ar-+a5yip2ouu_fazp+6x*y=!k93m*5q!5acoxs02cvj#u')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
-
-# suzstar_backend/settings.py
+DEBUG = os.environ.get('DJANGO_DEBUG', 'True') == 'True'
 
 ALLOWED_HOSTS = [
-    'localhost', 
-    '127.0.0.1', 
-    'suzstar-backend.onrender.com'
+    'localhost',
+    '127.0.0.1',
+    'suzstar-backend.onrender.com',
 ]
 
 
@@ -50,6 +50,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',  # For serving static files efficiently
     'corsheaders.middleware.CorsMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -79,7 +80,7 @@ TEMPLATES = [
 WSGI_APPLICATION = 'suzstar_backend.wsgi.application'
 
 
-# Database
+# Database – SQLite (⚠️ data will not persist on Render free tier)
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
@@ -113,34 +114,40 @@ USE_TZ = True
 
 
 # Static files (CSS, JavaScript, Images)
-STATIC_URL = 'static/'
-STATIC_ROOT = BASE_DIR / 'static'
+STATIC_URL = '/static/'
+STATIC_ROOT = BASE_DIR / 'staticfiles'   # Used by whitenoise in production
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
-# Media files (Uploaded content)
+# Media files (Uploaded content – not actively used, but kept)
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 
 # Default primary key field type
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-# CORS settings
+# CORS settings – allow your frontend origins (local and production)
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000",
     "http://127.0.0.1:3000",
-    "http://localhost:5173",  # Vite default port
+    "http://localhost:5173",
     "http://127.0.0.1:5173",
-    "https://suzstar-backend.onrender.com",
+    "http://localhost:5174",               # Your current frontend port
+    "https://suzstar-frontend.onrender.com",   # Replace with your actual frontend domain
 ]
 
+CORS_ALLOW_CREDENTIALS = True
+
+# CSRF trusted origins – for POST requests from your frontend
 CSRF_TRUSTED_ORIGINS = [
     "https://suzstar-backend.onrender.com",
     "https://suzstar-frontend.onrender.com",
 ]
 
-CORS_ALLOW_CREDENTIALS = True
-
 # REST Framework settings
 REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'rest_framework.authentication.TokenAuthentication',
+    ],
     'DEFAULT_PERMISSION_CLASSES': [
         'rest_framework.permissions.AllowAny',
     ],
@@ -150,14 +157,14 @@ REST_FRAMEWORK = {
     ],
 }
 
-# Email settings (for notifications)
-EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'  # For development - prints emails to console
-# For production, use SMTP:
+# Email settings (for notifications) – console backend for development
+EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+# For production, switch to SMTP and use environment variables:
 # EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-# EMAIL_HOST = 'smtp.gmail.com'
-# EMAIL_PORT = 587
-# EMAIL_USE_TLS = True
-# EMAIL_HOST_USER = 'your-email@gmail.com'
-# EMAIL_HOST_PASSWORD = 'your-app-password'  # Use app password for Gmail
-# DEFAULT_FROM_EMAIL = 'your-email@gmail.com'
-# CONTACT_EMAIL = 'contact@suzstarcounseling.com'
+# EMAIL_HOST = os.environ.get('EMAIL_HOST', 'smtp.gmail.com')
+# EMAIL_PORT = int(os.environ.get('EMAIL_PORT', 587))
+# EMAIL_USE_TLS = os.environ.get('EMAIL_USE_TLS', 'True') == 'True'
+# EMAIL_HOST_USER = os.environ.get('EMAIL_HOST_USER')
+# EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD')
+# DEFAULT_FROM_EMAIL = os.environ.get('DEFAULT_FROM_EMAIL')
+# CONTACT_EMAIL = os.environ.get('CONTACT_EMAIL')
